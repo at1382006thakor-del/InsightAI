@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "framework": "nextjs",
+  "regions": ["sfo1"],
+  "cleanUrls": true
+}
