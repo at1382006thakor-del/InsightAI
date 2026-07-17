@@ -35,7 +35,10 @@ export default function ReportsPage() {
       const response = await apiClient.get(`/reports/download/${id}`, {
         responseType: "blob",
       });
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const contentType = response.headers["content-type"];
+      const blob = new Blob([response.data], {
+        type: typeof contentType === "string" ? contentType : undefined,
+      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
