@@ -71,8 +71,6 @@ def generate_ai_business_report(db: Session, report_type: str) -> str:
 
     if api_key:
         try:
-            client = genai.Client(api_key=api_key)
-            
             prompt = f"""
             You are a professional Chief Business Analyst and Executive Consultant. 
             Analyze the following business intelligence data and write a detailed, high-level business report.
@@ -88,14 +86,56 @@ def generate_ai_business_report(db: Session, report_type: str) -> str:
             
             Keep the tone formal, professional, and analytical. Focus on data-driven reasoning.
             """
+
+            # Check if OpenRouter/OpenAI compatibility key is used
+            if api_key.startswith("sk-or-") or api_key.startswith("sk-"):
+                import requests
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                }
+                payload = {
+                    "model": "google/gemini-2.5-flash",
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ]
+                }
+                try:
+                    response = requests.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        headers=headers,
+                        json=payload,
+                        timeout=30
+                    )
+                    if response.status_code == 200:
+                        res_json = response.json()
+                        return res_json["choices"][0]["message"]["content"]
+                    else:
+                        print(f"OpenRouter report generation returned status {response.status_code}: {response.text}")
+                except Exception as e:
+                    print(f"OpenRouter report generation request failed: {str(e)}")
+            else:
+                # Native Gemini flow
+                client = genai.Client(api_key=api_key)
+                # Try multiple models in order of capability/deprecation fallback
+                last_err = None
+                for model_name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+                    try:
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=prompt,
+                        )
+                        return response.text
+                    except Exception as e:
+                        last_err = e
+                        continue
+                print(f"Gemini API generation failed for all models: {str(last_err)}")
             
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            return response.text
+            # Fallback if both flows fail
+            return generate_local_fallback_report(metrics_context, anomalies)
         except Exception as e:
-            # Fallback to local report if API call fails
+            # Fallback to local report if API client initialization or other error fails
+            print(f"AI service exception: {str(e)}")
             return generate_local_fallback_report(metrics_context, anomalies)
     else:
         return generate_local_fallback_report(metrics_context, anomalies)

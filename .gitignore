@@ -42,6 +42,14 @@ models/*.joblib
 reports/scratch/
 datasets/clean_*
 
+# Local settings config
+settings.json
+test_call_output.txt
+
+# Generated reports
+reports/*.pdf
+reports/*.pptx
+
 # OS Metadata
 .DS_Store
 Thumbs.db

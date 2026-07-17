@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../../services/api";
+import { api, apiClient } from "../../services/api";
 import { LayoutFrame } from "../../components/LayoutFrame";
 import { FileText, Download, Play, CheckCircle, Clock, Trash2, ShieldAlert } from "lucide-react";
 
@@ -30,10 +30,24 @@ export default function ReportsPage() {
     generateMutation.mutate({ type: reportType, format: fileFormat });
   };
 
-  const handleDownload = (id: string, format: string) => {
-    // Redirect to backend download route
-    const downloadUrl = api.reports.getDownloadUrl(id);
-    window.open(downloadUrl, "_blank");
+  const handleDownload = async (id: string, format: string) => {
+    try {
+      const response = await apiClient.get(`/reports/download/${id}`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `InsightAI_Report_${id.slice(0, 5)}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert("Failed to download the report.");
+    }
   };
 
   return (
