@@ -24,6 +24,7 @@ jobs:
         run: |
           cd frontend
           npm ci
+          npm install --no-save @tailwindcss/oxide-linux-x64-gnu
 
       - name: Next.js build validation
         run: |
