@@ -1,0 +1,12 @@
+node_modules
+.next
+venv
+.venv
+__pycache__
+*.db
+backend/datasets
+backend/models
+backend/reports
+backend/__pycache__
+frontend/node_modules
+frontend/.next
