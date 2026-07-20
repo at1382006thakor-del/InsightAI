@@ -2,7 +2,7 @@
 FROM node:18-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci && npm install --no-save @tailwindcss/oxide-linux-x64-musl
+RUN npm install
 
 # Stage 2: Build Next.js
 FROM node:18-alpine AS builder
