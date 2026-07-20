@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
+          rm package-lock.json
           npm install
 
       - name: Next.js build validation
